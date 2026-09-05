@@ -16,3 +16,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 Route::prefix('kantin/{canteen:slug}')
     ->name('customer.')
     ->group(base_path('routes/customer.php'));
+
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
+Route::get('/dashboard', function () {
+    return response('Dashboard Dummy', 200);
+})->middleware(['auth', 'verified'])->name('dashboard');
