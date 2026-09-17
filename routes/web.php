@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::prefix('tenant/{tenant:slug}')
+        ->middleware(['tenant'])
         ->scopeBindings()
         ->name('tenant.')
         ->group(base_path('routes/tenant.php'));
