@@ -2,6 +2,7 @@
 
 use App\Modules\Admin\Http\Controllers\AdminBankAccountController;
 use App\Modules\Admin\Http\Controllers\AdminCommissionController;
+use App\Modules\Admin\Http\Controllers\AdminDiningTableController;
 use App\Modules\Admin\Http\Controllers\AdminTenantController;
 use App\Modules\Admin\Http\Controllers\AdminTenantRoleController;
 use App\Modules\Admin\Http\Controllers\AdminTenantStatusController;
@@ -18,4 +19,9 @@ PortalRoutes::admin(function (): void {
     Route::post('/tenants/{tenant}/roles', [AdminTenantRoleController::class, 'store'])->name('tenants.roles.store');
     Route::delete('/tenants/{tenant}/roles/{user}', [AdminTenantRoleController::class, 'destroy'])->name('tenants.roles.destroy');
     Route::post('/tenants/{tenant}/bank-accounts/{account}', [AdminBankAccountController::class, 'update'])->name('tenants.bank-accounts.update');
+    Route::get('/tables', [AdminDiningTableController::class, 'index'])->name('tables.index');
+    Route::post('/tables', [AdminDiningTableController::class, 'store'])->name('tables.store');
+    Route::post('/tables/{table}/rotate', [AdminDiningTableController::class, 'rotate'])->name('tables.rotate');
+    Route::get('/tables/{table}/qr', [AdminDiningTableController::class, 'qr'])->name('tables.qr');
+    Route::post('/tables/{table}/status', [AdminDiningTableController::class, 'status'])->name('tables.status');
 });
