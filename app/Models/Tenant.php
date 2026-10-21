@@ -70,4 +70,9 @@ class Tenant extends Model
         return $this->hasMany(TenantBankAccount::class);
     }
 
+    /** @return HasMany<TenantOperatingHour, $this> */
+    public function operatingHours(): HasMany
+    {
+        return $this->hasMany(TenantOperatingHour::class);
+    }
 }

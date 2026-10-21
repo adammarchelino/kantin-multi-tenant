@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Route;
 /** Defines the shared URL, name, and middleware contract for each portal. */
 final class PortalRoutes
 {
+    /** Public web routes outside a portal prefix, such as opaque QR entry points. */
+    public static function web(Closure|string $routes): void
+    {
+        Route::middleware('web')->group($routes);
+    }
+
     public static function customer(Closure|string $routes): void
     {
         Route::middleware('web')
