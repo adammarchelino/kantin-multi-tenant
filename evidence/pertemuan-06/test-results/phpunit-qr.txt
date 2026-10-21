@@ -1,0 +1,5 @@
+Command: php artisan test --compact tests/Feature/TableQrUseCaseTest.php tests/Feature/QrTableSessionTest.php tests/Feature/CustomerScanUseCaseTest.php tests/Unit/OpaqueTokenTest.php
+Result: 12 passed (79 assertions)
+
+Command: php artisan test --compact
+Result: 93 passed (417 assertions)
