@@ -46,10 +46,26 @@ Framework tidak otomatis menegakkan batas modul. Review dan test menjaga agar sa
 | Konteks | Prefix | Nama | Middleware |
 |---|---|---|---|
 | Pelanggan publik | `kantin/{canteen}` | `customer.*` | `web` |
-| Operator tenant | `tenant/{tenant}` | `tenant.*` | `web`, `auth`, `verified`, `role:tenant` |
+| Operator tenant | `tenant/{tenant:slug}` | `tenant.*` | `web`, `auth`, `verified`, `tenant` (SetTenantContext) + `scopeBindings()` |
 | Pengelola kantin | `admin` | `admin.*` | `web`, `auth`, `verified`, `role:admin` |
 
-Definisi grup berada di satu tempat, `App\Support\Routing\PortalRoutes`. `bootstrap/app.php` memuat tiga file route inti melalui `withRouting(then: ...)`; route fitur modul memanggil grup portal yang sama. Route model binding dan `scopeBindings()` menunggu model Tenant/Canteen pada pertemuan lanjutan.
+Definisi grup berada di satu tempat, `App\Support\Routing\PortalRoutes`. `bootstrap/app.php` memuat tiga file route inti melalui `withRouting(then: ...)`; route fitur modul memanggil grup portal yang sama. Portal tenant memakai implicit binding `{tenant:slug}`, scoped binding untuk resource anak, dan resolver `SetTenantContext` yang memeriksa membership serta status sebelum request masuk ke handler. Binding `{canteen:slug}` untuk portal pelanggan menyusul Modul 6.
+
+## Isolasi tenant berlapis (Modul 4)
+
+Empat lapisan melindungi data tenant: (1) `TenantContext` scoped per request/job;
+(2) global scope dan auto-fill `tenant_id` dari trait `BelongsToTenant`;
+(3) middleware resolver dan membership check; serta (4) policy dan scoped route
+binding. Composite foreign key dan unique constraint database dari Modul 3
+menjaga integritas data.
+
+Global scope menerapkan filter ketika `TenantContext` terisi. Semua portal tenant
+mengisi context lewat middleware; job membawanya melalui `tenant_id`. Tanpa
+context, query Eloquent tidak otomatis dibatasi. Karena itu query console atau
+service baru wajib mengisi context atau memakai query lintas-tenant khusus yang
+disetujui dan memberi filter pengganti eksplisit. Satu-satunya bypass publik saat
+ini berada di `PublicCatalogQuery`, yang membatasi hasil ke canteen tertentu,
+tenant aktif, dan menu tersedia.
 
 ## Authentication dan authorization
 

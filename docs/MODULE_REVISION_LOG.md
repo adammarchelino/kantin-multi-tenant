@@ -15,3 +15,13 @@ The demo seeder writes identity columns and scoped foreign keys explicitly via
 so treating them as `firstOrNew` lookup criteria alone would leave new rows
 without required tenant identifiers. Re-running the seeder updates the same
 natural-key rows instead of creating duplicates.
+
+## DOC-04-001 — Tenant scope needs a request/job context
+
+The Module 4 trait example applies its global scope only when `TenantContext`
+has a tenant; its sample test also documents that no-context queries are not
+filtered. Internal tenant routes therefore require `SetTenantContext`, and
+queue jobs must rebuild and clear context from an explicit `tenant_id`. New
+console/service queries must establish context or use an audited cross-tenant
+query with replacement filters. This constraint is documented because the
+scope alone does not fail closed for arbitrary code paths.
