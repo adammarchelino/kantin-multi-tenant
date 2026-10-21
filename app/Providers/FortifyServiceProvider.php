@@ -4,11 +4,14 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
+use App\Support\Auth\LoginLockout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -29,6 +32,22 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $email = (string) $request->input('email', '');
+            $lockout = app(LoginLockout::class);
+            if ($lockout->locked($email)) {
+                throw ValidationException::withMessages(['email' => 'Akun terkunci sementara. Coba lagi dalam 15 menit.']);
+            }
+            $user = User::where('email', $email)->first();
+            if ($user && $user->isActive() && Hash::check((string) $request->input('password'), $user->password)) {
+                $lockout->clear($email);
+
+                return $user;
+            }
+            $lockout->fail($email);
+
+            return null;
+        });
     }
 
     /**
@@ -64,9 +83,7 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(20)->by('login-ip:'.$request->ip());
         });
 
         RateLimiter::for('passkeys', function (Request $request) {
