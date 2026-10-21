@@ -24,16 +24,16 @@ abstract class ModuleServiceProvider extends ServiceProvider
         $path = $this->modulePath();
 
         $this->loadViewsFrom(
-            $path . '/resources/views',
+            $path.'/resources/views',
             $this->moduleAlias()
         );
 
         Livewire::addNamespace(
             namespace: $this->moduleAlias(),
-            viewPath: $path . '/resources/views/livewire',
+            viewPath: $path.'/resources/views/livewire',
         );
 
-        foreach (glob($path . '/routes/*.php') ?: [] as $routeFile) {
+        foreach (glob($path.'/routes/*.php') ?: [] as $routeFile) {
             $this->loadRoutesFrom($routeFile);
         }
     }

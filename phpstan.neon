@@ -10,4 +10,8 @@ parameters:
         - database/
         - routes/
 
+    excludePaths:
+        analyse:
+            - app/Modules/*/resources/*
+
     level: 7
