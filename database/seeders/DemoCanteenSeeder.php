@@ -12,6 +12,7 @@ use App\Models\ModifierOption;
 use App\Models\Tenant;
 use App\Models\TenantBalance;
 use App\Models\User;
+use App\Models\UserCanteenRole;
 use App\Models\UserTenantRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
@@ -81,6 +82,13 @@ class DemoCanteenSeeder extends Seeder
             ]), [
                 'user_id' => $operator->id, 'tenant_id' => $tenants['AYAM']->id, 'role' => 'operator',
             ], []);
+        }
+
+        $admin = User::where('email', 'admin@kantin.test')->first();
+        if ($admin !== null) {
+            $this->persist(UserCanteenRole::firstOrNew([
+                'user_id' => $admin->id, 'canteen_id' => $canteen->id, 'role' => 'manager',
+            ]), ['user_id' => $admin->id, 'canteen_id' => $canteen->id, 'role' => 'manager'], []);
         }
     }
 
