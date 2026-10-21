@@ -30,4 +30,9 @@ class Canteen extends Model
     {
         return $this->hasMany(DiningTable::class);
     }
+
+    public function customerSessions(): HasMany
+    {
+        return $this->hasMany(CustomerSession::class);
+    }
 }
