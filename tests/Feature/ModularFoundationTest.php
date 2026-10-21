@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Tenant;
 use App\Models\User;
+use App\Models\UserTenantRole;
 use App\Modules\Admin\AdminServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Kitchen\KitchenServiceProvider;
@@ -36,17 +38,23 @@ class ModularFoundationTest extends TestCase
 
     public function test_guests_are_redirected_from_internal_portals(): void
     {
-        $this->get(route('tenant.dashboard', ['tenant' => 'demo']))
+        $tenant = Tenant::factory()->create();
+
+        $this->get(route('tenant.dashboard', ['tenant' => $tenant->slug]))
             ->assertRedirect(route('login'));
         $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
     }
 
     public function test_tenant_and_admin_roles_are_limited_to_their_portals(): void
     {
-        $this->actingAs($this->user('tenant'))
-            ->get(route('tenant.dashboard', ['tenant' => 'demo']))
+        $tenantUser = $this->user('tenant');
+        $tenant = Tenant::factory()->create();
+        UserTenantRole::create(['user_id' => $tenantUser->id, 'tenant_id' => $tenant->id, 'role' => 'operator']);
+
+        $this->actingAs($tenantUser)
+            ->get(route('tenant.dashboard', ['tenant' => $tenant->slug]))
             ->assertOk()
-            ->assertSee('Dashboard Tenant')
+            ->assertSee($tenant->display_name)
             ->assertSee('data-tenant-sidebar-toggle', false)
             ->assertSee('data-tenant-sidebar-close', false)
             ->assertSee('data-tenant-sidebar-backdrop', false);
@@ -58,7 +66,7 @@ class ModularFoundationTest extends TestCase
             ->assertOk()
             ->assertSee('Dashboard Pengelola');
 
-        $this->get(route('tenant.dashboard', ['tenant' => 'demo']))->assertForbidden();
+        $this->get(route('tenant.dashboard', ['tenant' => $tenant->slug]))->assertForbidden();
     }
 
     public function test_missing_role_and_suspended_accounts_are_forbidden(): void
@@ -67,8 +75,12 @@ class ModularFoundationTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertForbidden();
 
-        $this->actingAs($this->user('tenant', 'suspended'))
-            ->get(route('tenant.dashboard', ['tenant' => 'demo']))
+        $tenantUser = $this->user('tenant', 'suspended');
+        $tenant = Tenant::factory()->create();
+        UserTenantRole::create(['user_id' => $tenantUser->id, 'tenant_id' => $tenant->id, 'role' => 'operator']);
+
+        $this->actingAs($tenantUser)
+            ->get(route('tenant.dashboard', ['tenant' => $tenant->slug]))
             ->assertForbidden();
     }
 

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Tenant;
 use App\Models\User;
+use App\Models\UserTenantRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Route;
@@ -42,16 +44,20 @@ class ModuleConventionTest extends TestCase
         $route = Route::getRoutes()->getByName('tenant.probe');
         $this->assertNotNull($route);
         $this->assertSame('tenant/{tenant}/probe', $route->uri());
+        $this->assertSame('slug', $route->bindingFieldFor('tenant'));
+        $this->assertTrue($route->enforcesScopedBindings());
 
-        foreach (['web', 'auth', 'verified', 'role:tenant'] as $middleware) {
+        foreach (['web', 'auth', 'verified', 'tenant'] as $middleware) {
             $this->assertContains($middleware, $route->gatherMiddleware());
         }
 
-        $this->actingAs(User::factory()->create());
-        $user = auth()->user();
+        $user = User::factory()->create();
         $user->forceFill(['role' => 'tenant', 'status' => 'active'])->save();
+        $tenant = Tenant::factory()->create();
+        UserTenantRole::create(['user_id' => $user->id, 'tenant_id' => $tenant->id, 'role' => 'operator']);
+        $this->actingAs($user);
 
-        $this->get(route('tenant.probe', ['tenant' => 'demo']))
+        $this->get(route('tenant.probe', ['tenant' => $tenant->slug]))
             ->assertOk()
             ->assertSee('Probe page')
             ->assertSee('Probe count: 0');
@@ -70,7 +76,7 @@ class ModuleConventionTest extends TestCase
     public function test_every_named_portal_route_has_the_required_middleware(): void
     {
         $portals = [
-            'tenant.' => ['web', 'auth', 'verified', 'role:tenant'],
+            'tenant.' => ['web', 'auth', 'verified', 'tenant'],
             'admin.' => ['web', 'auth', 'verified', 'role:admin'],
             'customer.' => ['web'],
         ];

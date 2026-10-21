@@ -39,4 +39,16 @@ class Tenant extends Model
     {
         return $this->hasMany(Menu::class);
     }
+
+    /** @return HasMany<TenantOrder, $this> */
+    public function tenantOrders(): HasMany
+    {
+        return $this->hasMany(TenantOrder::class);
+    }
+
+    /** @return HasMany<Withdrawal, $this> */
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
 }
