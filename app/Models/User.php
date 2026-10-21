@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -80,5 +81,17 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /** @return HasMany<UserCanteenRole, $this> */
+    public function canteenRoles(): HasMany
+    {
+        return $this->hasMany(UserCanteenRole::class);
+    }
+
+    /** @return HasMany<UserTenantRole, $this> */
+    public function tenantRoles(): HasMany
+    {
+        return $this->hasMany(UserTenantRole::class);
     }
 }
